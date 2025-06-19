@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, FileText, Download, Sparkles, CheckCircle, ArrowRight } from 'lucide-react'
+import { Upload, FileText, Download, Sparkles, CheckCircle, ArrowRight, Play } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ResumeUpload from '@/components/ResumeUpload'
 import JobDescriptionUpload from '@/components/JobDescriptionUpload'
 import ResumePreview from '@/components/ResumePreview'
 import { cn } from '@/lib/utils'
+import { mockResume, mockJobDescription, mockTailoredResume } from '@/lib/mockData'
 
 interface Resume {
   id: number
@@ -33,6 +34,7 @@ export default function Home() {
   const [jobDescription, setJobDescription] = useState<JobDescription | null>(null)
   const [tailoredResume, setTailoredResume] = useState<TailoredResume | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isDemoMode, setIsDemoMode] = useState(false)
 
   const steps = [
     { id: 1, title: 'Upload Resume', icon: Upload },
@@ -60,6 +62,18 @@ export default function Home() {
     }
 
     setIsProcessing(true)
+    
+    if (isDemoMode) {
+      // Simulate API delay
+      setTimeout(() => {
+        setTailoredResume(mockTailoredResume)
+        setCurrentStep(4)
+        setIsProcessing(false)
+        toast.success('Resume tailored successfully! (Demo Mode)')
+      }, 2000)
+      return
+    }
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tailor-resume`, {
         method: 'POST',
@@ -96,6 +110,11 @@ export default function Home() {
       return
     }
 
+    if (isDemoMode) {
+      toast.success('PDF download simulated! (Demo Mode)')
+      return
+    }
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-pdf/${tailoredResume.id}`, {
         method: 'POST',
@@ -126,6 +145,23 @@ export default function Home() {
     }
   }
 
+  const startDemo = () => {
+    setIsDemoMode(true)
+    setResume(mockResume)
+    setJobDescription(mockJobDescription)
+    setCurrentStep(3)
+    toast.success('Demo mode activated! Using sample data.')
+  }
+
+  const resetDemo = () => {
+    setIsDemoMode(false)
+    setResume(null)
+    setJobDescription(null)
+    setTailoredResume(null)
+    setCurrentStep(1)
+    toast.success('Demo reset. Ready for real data.')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
@@ -140,6 +176,24 @@ export default function Home() {
                 <h1 className="text-2xl font-bold text-gray-900">Resume Optimizer</h1>
                 <p className="text-sm text-gray-600">AI-Powered Resume Tailoring</p>
               </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              {isDemoMode && (
+                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                  Demo Mode
+                </div>
+              )}
+              <button
+                onClick={isDemoMode ? resetDemo : startDemo}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isDemoMode
+                    ? 'bg-gray-600 text-white hover:bg-gray-700'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                <Play className="w-4 h-4" />
+                <span>{isDemoMode ? 'Reset Demo' : 'Start Demo'}</span>
+              </button>
             </div>
           </div>
         </div>
