@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: 'Tailor your resume for specific job descriptions using AI. Upload your resume and job description to get a perfectly tailored, one-page resume.',
   keywords: 'resume, job application, AI, career, job search, resume optimization',
   authors: [{ name: 'Resume Optimizer Team' }],
-  viewport: 'width=device-width, initial-scale=1',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

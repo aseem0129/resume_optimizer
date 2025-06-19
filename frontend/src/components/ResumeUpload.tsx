@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, FileText, X, CheckCircle, Sparkles, Award } from 'lucide-react'
+import { UploadCloud, FileCheck2, X, Sparkle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn, formatFileSize, isValidFileType } from '@/lib/utils'
 
@@ -27,13 +27,11 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
     const file = acceptedFiles[0]
     if (!file) return
 
-    // Validate file type
     if (!isValidFileType(file.name, allowedTypes)) {
       toast.error(`Invalid file type. Allowed: ${allowedTypes.join(', ')}`)
       return
     }
 
-    // Validate file size
     if (file.size > maxSize) {
       toast.error('File too large. Maximum size: 10MB')
       return
@@ -61,7 +59,7 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
         onUpload({
           id: data.file_id,
           filename: data.filename,
-          parsed_content: '', // Will be fetched separately if needed
+          parsed_content: '',
         })
       } else {
         throw new Error(data.message || 'Upload failed')
@@ -91,92 +89,50 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <p className="luxury-subtitle text-lg">
-          Upload your resume and let us transform it into your career success story
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {!uploadedFile ? (
         <div
           {...getRootProps()}
           className={cn(
-            'border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all duration-500 hover-lift',
+            'relative group overflow-hidden bg-neutral-100/60 border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ease-in-out transform',
             isDragActive
-              ? 'border-purple-400 bg-gradient-to-r from-purple-50 to-blue-50 shadow-lg'
-              : 'border-gray-300 hover:border-purple-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50'
+              ? 'border-warm-500 bg-warm-50/80 scale-105 shadow-medium'
+              : 'border-neutral-300 hover:border-neutral-400/80 hover:bg-neutral-100'
           )}
         >
           <input {...getInputProps()} />
-          <div className="space-y-6">
-            <div className="relative mx-auto w-24 h-24">
-              <div className={cn(
-                'w-full h-full rounded-3xl flex items-center justify-center transition-all duration-500',
-                isDragActive 
-                  ? 'luxury-gradient shadow-xl scale-110' 
-                  : 'bg-gradient-to-r from-slate-100 to-blue-100 shadow-lg'
-              )}>
-                <Upload className={cn(
-                  'w-12 h-12 transition-all duration-500',
-                  isDragActive ? 'text-white' : 'text-blue-600'
-                )} />
-              </div>
-              {isDragActive && (
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse-glow">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-              )}
-            </div>
-            
+          <div className="absolute inset-0 bg-gradient-to-br from-warm-500/20 to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="relative z-10">
+            <UploadCloud className={cn('w-16 h-16 text-neutral-400 mx-auto mb-4 transition-transform duration-300', isDragActive && 'transform -translate-y-1 scale-110 text-warm-600')} />
             {isDragActive ? (
-              <div className="space-y-2">
-                <p className="text-xl font-semibold text-purple-700">Drop your resume here</p>
-                <p className="text-purple-600">We're ready to transform it!</p>
-              </div>
+              <p className="text-xl font-semibold text-warm-700 font-heading">Let go to begin the magic!</p>
             ) : (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xl font-semibold text-gray-800 mb-2">
-                    Drag & drop your resume here
-                  </p>
-                  <p className="text-gray-600">or click to browse files</p>
-                </div>
-                <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="w-4 h-4" />
-                    <span>PDF</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <FileText className="w-4 h-4" />
-                    <span>DOCX</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <FileText className="w-4 h-4" />
-                    <span>TXT</span>
-                  </div>
-                </div>
+              <div>
+                <p className="text-lg font-semibold text-neutral-700 mb-2 font-heading">
+                  Let's begin your story. Place your resume here.
+                </p>
+                <p className="text-sm text-neutral-500">
+                  Supports PDF, DOCX, and TXT files up to 10MB
+                </p>
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-3xl p-6 animate-fade-in-scale">
+        <div className="bg-green-50/80 border border-green-200 rounded-2xl p-5 animate-scale-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
+              <FileCheck2 className="w-8 h-8 text-green-600" />
               <div>
-                <p className="font-semibold text-green-800 text-lg">{uploadedFile.name}</p>
-                <p className="text-green-600 text-sm">
-                  {formatFileSize(uploadedFile.size)}
+                <p className="font-semibold text-green-900">{uploadedFile.name}</p>
+                <p className="text-sm text-green-700">
+                  {formatFileSize(uploadedFile.size)} - Ready to go!
                 </p>
               </div>
             </div>
             <button
               onClick={removeFile}
-              className="text-green-600 hover:text-green-800 transition-colors p-2 rounded-full hover:bg-green-100"
+              className="text-neutral-500 hover:text-neutral-800 p-1 rounded-full transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -185,67 +141,22 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
       )}
 
       {isUploading && (
-        <div className="text-center space-y-4">
-          <div className="relative mx-auto w-16 h-16">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
-            <div className="absolute inset-0 rounded-full border-2 border-purple-200"></div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-gray-700 font-medium">Processing your resume</p>
-            <p className="text-gray-500 text-sm">Extracting content and preparing for optimization</p>
-          </div>
+        <div className="flex items-center justify-center space-x-3 text-neutral-600">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-warm-600"></div>
+          <p>Analyzing your resume...</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass rounded-2xl p-6 text-center hover-lift">
-          <div className="w-12 h-12 luxury-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-6 h-6 text-white" />
+      <div className="bg-neutral-100/70 border border-neutral-200/80 rounded-2xl p-5">
+        <div className="flex items-center space-x-3">
+          <Sparkle className="w-8 h-8 text-warm-500" />
+          <div>
+            <h3 className="font-semibold text-neutral-800">What we do with your resume:</h3>
+            <p className="text-sm text-neutral-600 mt-1">
+              Your document is securely parsed to prepare it for our AI tailoring process. We respect your privacy.
+            </p>
           </div>
-          <h3 className="font-semibold text-gray-900 mb-2">AI-Powered Analysis</h3>
-          <p className="text-sm text-gray-600">Advanced algorithms extract key information from your resume</p>
         </div>
-        
-        <div className="glass rounded-2xl p-6 text-center hover-lift">
-          <div className="w-12 h-12 luxury-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Award className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="font-semibold text-gray-900 mb-2">Professional Formatting</h3>
-          <p className="text-sm text-gray-600">Maintains your original layout while optimizing content</p>
-        </div>
-        
-        <div className="glass rounded-2xl p-6 text-center hover-lift">
-          <div className="w-12 h-12 luxury-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="font-semibold text-gray-900 mb-2">Secure Processing</h3>
-          <p className="text-sm text-gray-600">Your data is processed securely and never stored permanently</p>
-        </div>
-      </div>
-
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
-        <h3 className="font-semibold text-blue-900 mb-3 flex items-center">
-          <Sparkles className="w-5 h-5 mr-2" />
-          What happens next?
-        </h3>
-        <ul className="text-sm text-blue-800 space-y-2">
-          <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>We extract and analyze your resume content with precision</span>
-          </li>
-          <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>Identify key sections: experience, skills, education, and achievements</span>
-          </li>
-          <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>Prepare your content for AI-powered tailoring optimization</span>
-          </li>
-          <li className="flex items-start">
-            <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-            <span>Your data is processed securely and never stored permanently</span>
-          </li>
-        </ul>
       </div>
     </div>
   )

@@ -34,7 +34,6 @@ export default function JobDescriptionUpload({ onUpload }: JobDescriptionUploadP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate form
     if (!formData.title.trim() || !formData.company.trim() || !formData.content.trim()) {
       toast.error('Please fill in all fields')
       return
@@ -72,73 +71,73 @@ export default function JobDescriptionUpload({ onUpload }: JobDescriptionUploadP
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <p className="text-gray-600 mb-4">
-          Add the job description you want to tailor your resume for.
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              <Briefcase className="w-4 h-4 inline mr-2" />
+          <div className="relative group">
+            <label htmlFor="title" className="absolute -top-3 left-3 bg-white px-1 text-sm font-medium text-neutral-600 font-heading">
               Job Title
             </label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="e.g., Senior Software Engineer"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              required
-            />
+            <div className="flex items-center bg-white rounded-lg border border-neutral-300 transition-all duration-300 group-focus-within:border-warm-500 group-focus-within:ring-2 group-focus-within:ring-warm-500/50">
+              <Briefcase className="w-5 h-5 text-neutral-400 mx-3" />
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="e.g., Senior Software Engineer"
+                className="w-full pl-0 pr-4 py-3 bg-transparent border-0 focus:ring-0"
+                required
+              />
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
-              <Building className="w-4 h-4 inline mr-2" />
+          <div className="relative group">
+            <label htmlFor="company" className="absolute -top-3 left-3 bg-white px-1 text-sm font-medium text-neutral-600 font-heading">
               Company Name
             </label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleInputChange}
-              placeholder="e.g., Google, Microsoft"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              required
-            />
+            <div className="flex items-center bg-white rounded-lg border border-neutral-300 transition-all duration-300 group-focus-within:border-warm-500 group-focus-within:ring-2 group-focus-within:ring-warm-500/50">
+              <Building className="w-5 h-5 text-neutral-400 mx-3" />
+              <input
+                type="text"
+                id="company"
+                name="company"
+                value={formData.company}
+                onChange={handleInputChange}
+                placeholder="e.g., Google, Microsoft"
+                className="w-full pl-0 pr-4 py-3 bg-transparent border-0 focus:ring-0"
+                required
+              />
+            </div>
           </div>
         </div>
 
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-            <FileText className="w-4 h-4 inline mr-2" />
+        <div className="relative group">
+          <label htmlFor="content" className="absolute -top-3 left-3 bg-white px-1 text-sm font-medium text-neutral-600 font-heading">
             Job Description
           </label>
-          <textarea
-            id="content"
-            name="content"
-            value={formData.content}
-            onChange={handleInputChange}
-            placeholder="Paste the full job description here. Include requirements, responsibilities, and any specific skills or qualifications mentioned..."
-            rows={12}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-vertical"
-            required
-          />
-          <p className="text-sm text-gray-500 mt-2">
-            {formData.content.length} characters (minimum 50)
+          <div className="flex items-start bg-white rounded-lg border border-neutral-300 transition-all duration-300 group-focus-within:border-warm-500 group-focus-within:ring-2 group-focus-within:ring-warm-500/50">
+            <FileText className="w-5 h-5 text-neutral-400 mx-3 mt-3.5" />
+            <textarea
+              id="content"
+              name="content"
+              value={formData.content}
+              onChange={handleInputChange}
+              placeholder="Paste the full job description here..."
+              rows={12}
+              className="w-full pl-0 pr-4 py-3 bg-transparent border-0 focus:ring-0 resize-vertical"
+              required
+            />
+          </div>
+          <p className="text-xs text-neutral-500 mt-2 text-right">
+            {formData.content.length} characters
           </p>
         </div>
 
         <button
           type="submit"
           disabled={isProcessing}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full bg-gradient-to-r from-warm-500 to-amber-500 text-white py-4 px-6 rounded-lg font-semibold hover:shadow-medium active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-lg"
         >
           {isProcessing ? (
             <>
@@ -154,23 +153,12 @@ export default function JobDescriptionUpload({ onUpload }: JobDescriptionUploadP
         </button>
       </form>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">What we extract from the job description:</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Key technical skills and technologies</li>
-          <li>• Required and preferred qualifications</li>
-          <li>• Job responsibilities and expectations</li>
-          <li>• Industry-specific keywords</li>
-          <li>• Experience level requirements</li>
-        </ul>
-      </div>
-
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h3 className="font-semibold text-yellow-900 mb-2">💡 Tips for better results:</h3>
-        <ul className="text-sm text-yellow-800 space-y-1">
-          <li>• Include the complete job description for better keyword extraction</li>
-          <li>• Make sure to include requirements and responsibilities sections</li>
-          <li>• The more detailed the description, the better the tailoring</li>
+      <div className="bg-neutral-100/70 border border-neutral-200/80 rounded-2xl p-5">
+        <h3 className="font-semibold text-neutral-800 mb-2 font-heading">💡 Tips for Best Results</h3>
+        <ul className="text-sm text-neutral-600 space-y-2 list-disc list-inside">
+          <li>Provide the complete job description for the most accurate tailoring.</li>
+          <li>Ensure requirements and responsibilities are included.</li>
+          <li>The more detail you provide, the better our AI can assist you.</li>
         </ul>
       </div>
     </div>
