@@ -1,13 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Upload, FileText, Download, Sparkles, CheckCircle, ArrowRight, Play } from 'lucide-react'
-import toast from 'react-hot-toast'
-import ResumeUpload from '@/components/ResumeUpload'
-import JobDescriptionUpload from '@/components/JobDescriptionUpload'
-import ResumePreview from '@/components/ResumePreview'
+import { useState, useEffect } from 'react'
+import { Upload, FileText, Sparkles, CheckCircle, Crown, Star, Play, Zap } from 'lucide-react'
+import { Toaster, toast } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import { mockResume, mockJobDescription, mockTailoredResume } from '@/lib/mockData'
+import ResumeUpload from '@/components/ResumeUpload'
+import JobDescription from '@/components/JobDescription'
+import ResumeTailor from '@/components/ResumeTailor'
 
 interface Resume {
   id: number
@@ -15,183 +14,129 @@ interface Resume {
   parsed_content: string
 }
 
-interface JobDescription {
-  id: number
-  title: string
-  company: string
-  content: string
-}
-
-interface TailoredResume {
-  id: number
-  preview_content: string
-  estimated_pages: number
-}
-
 export default function Home() {
+  const [mounted, setMounted] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [resume, setResume] = useState<Resume | null>(null)
-  const [jobDescription, setJobDescription] = useState<JobDescription | null>(null)
-  const [tailoredResume, setTailoredResume] = useState<TailoredResume | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [jobDescription, setJobDescription] = useState<string>('')
   const [isDemoMode, setIsDemoMode] = useState(false)
 
   const steps = [
-    { id: 1, title: 'Upload Resume', icon: Upload },
-    { id: 2, title: 'Add Job Description', icon: FileText },
-    { id: 3, title: 'AI Tailoring', icon: Sparkles },
-    { id: 4, title: 'Download PDF', icon: Download },
+    {
+      id: 1,
+      title: 'Upload Resume',
+      description: 'Upload your current resume',
+      icon: Upload
+    },
+    {
+      id: 2,
+      title: 'Job Description',
+      description: 'Add the job description',
+      icon: FileText
+    },
+    {
+      id: 3,
+      title: 'AI Tailoring',
+      description: 'Let AI optimize your resume',
+      icon: Sparkles
+    },
+    {
+      id: 4,
+      title: 'Download',
+      description: 'Get your tailored resume',
+      icon: CheckCircle
+    }
   ]
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleResumeUpload = (uploadedResume: Resume) => {
     setResume(uploadedResume)
     setCurrentStep(2)
-    toast.success('Resume uploaded successfully!')
   }
 
-  const handleJobDescriptionUpload = (uploadedJD: JobDescription) => {
-    setJobDescription(uploadedJD)
+  const handleJobDescriptionSubmit = (description: string) => {
+    setJobDescription(description)
     setCurrentStep(3)
-    toast.success('Job description processed!')
   }
 
-  const handleTailorResume = async () => {
-    if (!resume || !jobDescription) {
-      toast.error('Please upload both resume and job description first')
-      return
-    }
-
-    setIsProcessing(true)
-    
-    if (isDemoMode) {
-      // Simulate API delay
-      setTimeout(() => {
-        setTailoredResume(mockTailoredResume)
-        setCurrentStep(4)
-        setIsProcessing(false)
-        toast.success('Resume tailored successfully! (Demo Mode)')
-      }, 2000)
-      return
-    }
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tailor-resume`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          resume_id: resume.id,
-          job_description_id: jobDescription.id,
-          preserve_formatting: true,
-          target_length: 'one_page',
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to tailor resume')
-      }
-
-      const data = await response.json()
-      setTailoredResume(data)
-      setCurrentStep(4)
-      toast.success('Resume tailored successfully!')
-    } catch (error) {
-      toast.error('Error tailoring resume. Please try again.')
-      console.error('Error:', error)
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const handleDownloadPDF = async () => {
-    if (!tailoredResume) {
-      toast.error('No tailored resume available')
-      return
-    }
-
-    if (isDemoMode) {
-      toast.success('PDF download simulated! (Demo Mode)')
-      return
-    }
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-pdf/${tailoredResume.id}`, {
-        method: 'POST',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF')
-      }
-
-      const data = await response.json()
-      
-      // Download the PDF
-      const downloadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/download/${tailoredResume.id}`)
-      const blob = await downloadResponse.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `tailored_resume_${tailoredResume.id}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-
-      toast.success('PDF downloaded successfully!')
-    } catch (error) {
-      toast.error('Error downloading PDF. Please try again.')
-      console.error('Error:', error)
-    }
+  const handleTailorComplete = () => {
+    setCurrentStep(4)
   }
 
   const startDemo = () => {
     setIsDemoMode(true)
-    setResume(mockResume)
-    setJobDescription(mockJobDescription)
-    setCurrentStep(3)
-    toast.success('Demo mode activated! Using sample data.')
+    setResume({
+      id: 1,
+      filename: 'demo_resume.pdf',
+      parsed_content: 'Demo resume content'
+    })
+    setJobDescription('Demo job description for testing purposes')
+    setCurrentStep(1)
+    toast.success('🎭 Demo mode activated! Try the full workflow.')
   }
 
   const resetDemo = () => {
     setIsDemoMode(false)
     setResume(null)
-    setJobDescription(null)
-    setTailoredResume(null)
+    setJobDescription('')
     setCurrentStep(1)
-    toast.success('Demo reset. Ready for real data.')
+    toast.success('🔄 Demo reset. Ready for real data.')
   }
 
+  if (!mounted) return null
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(156,146,172,0.15)_1px,transparent_0)] bg-[length:20px_20px]"></div>
+        </div>
+      </div>
+
+      {/* Floating Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-10 animate-float"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 bg-gradient-to-r from-pink-400 to-red-400 rounded-full opacity-10 animate-float" style={{ animationDelay: '4s' }}></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="relative z-10 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-12 h-12 luxury-gradient rounded-2xl flex items-center justify-center shadow-lg animate-pulse-glow">
+                  <Crown className="w-7 h-7 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                  <Star className="w-2 h-2 text-white" />
+                </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Resume Optimizer</h1>
-                <p className="text-sm text-gray-600">AI-Powered Resume Tailoring</p>
+                <h1 className="luxury-title text-3xl">Resume Optimizer</h1>
+                <p className="luxury-subtitle text-sm">Where dreams meet opportunity</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               {isDemoMode && (
-                <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                  Demo Mode
+                <div className="bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium border border-amber-200 shadow-sm">
+                  🎭 Demo Mode
                 </div>
               )}
               <button
                 onClick={isDemoMode ? resetDemo : startDemo}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`luxury-button px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
                   isDemoMode
-                    ? 'bg-gray-600 text-white hover:bg-gray-700'
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
+                    : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700'
                 }`}
               >
-                <Play className="w-4 h-4" />
+                <Play className="w-4 h-4 mr-2" />
                 <span>{isDemoMode ? 'Reset Demo' : 'Start Demo'}</span>
               </button>
             </div>
@@ -199,118 +144,158 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Progress Steps */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div
-                  className={cn(
-                    'flex items-center justify-center w-12 h-12 rounded-full border-2 transition-colors',
-                    currentStep >= step.id
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-400'
-                  )}
-                >
-                  <step.icon className="w-6 h-6" />
-                </div>
-                <span
-                  className={cn(
-                    'ml-3 text-sm font-medium',
-                    currentStep >= step.id ? 'text-blue-600' : 'text-gray-500'
-                  )}
-                >
-                  {step.title}
-                </span>
-                {index < steps.length - 1 && (
-                  <ArrowRight className="w-5 h-5 text-gray-300 mx-4" />
-                )}
-              </div>
-            ))}
+      {/* Main Content */}
+      <main className="relative z-10 pt-8 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <h2 className="luxury-title text-4xl md:text-5xl mb-4">
+              Transform Your Career
+            </h2>
+            <p className="luxury-subtitle text-lg md:text-xl max-w-2xl mx-auto">
+              Let AI craft the perfect resume that opens doors to your dream job
+            </p>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
-          {currentStep === 1 && (
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Your Resume</h2>
-              <ResumeUpload onUpload={handleResumeUpload} />
-            </div>
-          )}
-
-          {currentStep === 2 && (
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Job Description</h2>
-              <JobDescriptionUpload onUpload={handleJobDescriptionUpload} />
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">AI Resume Tailoring</h2>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">Selected Resume</h3>
-                    <p className="text-sm text-gray-600">{resume?.filename}</p>
+          {/* Progress Steps */}
+          <div className="mb-12">
+            <div className="flex items-center justify-center space-x-8">
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex flex-col items-center">
+                  <div
+                    className={cn(
+                      'w-16 h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-lg',
+                      currentStep > step.id
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                        : currentStep === step.id
+                        ? 'luxury-gradient text-white shadow-xl'
+                        : 'bg-white/80 border-gray-200 text-gray-400'
+                    )}
+                  >
+                    <step.icon className="w-7 h-7" />
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">Job Description</h3>
-                    <p className="text-sm text-gray-600">{jobDescription?.title} at {jobDescription?.company}</p>
+                  <div className="mt-3 text-center">
+                    <p className={cn(
+                      'font-semibold text-sm transition-colors',
+                      currentStep >= step.id ? 'text-gray-900' : 'text-gray-500'
+                    )}>
+                      {step.title}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">{step.description}</p>
                   </div>
+                  {index < steps.length - 1 && (
+                    <div className={cn(
+                      'w-16 h-0.5 transition-all duration-500',
+                      currentStep > step.id ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gray-200'
+                    )}></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Step Content */}
+          <div className="max-w-4xl mx-auto">
+            {currentStep === 1 && (
+              <div className="glass rounded-3xl p-8 animate-fade-in-scale hover-lift">
+                <ResumeUpload onUpload={handleResumeUpload} />
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="glass rounded-3xl p-8 animate-fade-in-scale hover-lift">
+                <JobDescription onJobDescriptionSubmit={handleJobDescriptionSubmit} />
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="glass rounded-3xl p-8 animate-fade-in-scale hover-lift">
+                <ResumeTailor 
+                  resume={resume!} 
+                  jobDescription={jobDescription} 
+                  onComplete={handleTailorComplete} 
+                />
+              </div>
+            )}
+
+            {currentStep === 4 && (
+              <div className="glass rounded-3xl p-8 animate-fade-in-scale hover-lift success-glow">
+                <div className="text-center mb-8">
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <CheckCircle className="w-10 h-10 text-white" />
+                  </div>
+                  <h2 className="luxury-title text-3xl mb-2">Your Success Awaits</h2>
+                  <p className="luxury-subtitle">Download your perfectly tailored resume</p>
                 </div>
                 
-                <button
-                  onClick={handleTailorResume}
-                  disabled={isProcessing}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Tailoring Resume...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      <span>Tailor Resume with AI</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 4 && tailoredResume && (
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Download Your Tailored Resume</h2>
-              <div className="space-y-6">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-green-800 font-medium">Resume tailored successfully!</span>
+                <div className="space-y-8">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                      <div>
+                        <h3 className="font-semibold text-green-900">Resume Successfully Tailored!</h3>
+                        <p className="text-green-700 text-sm">Your resume has been optimized for maximum impact</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Estimated pages: {tailoredResume.estimated_pages}
-                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="glass rounded-2xl p-6 text-center hover-lift">
+                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle className="w-6 h-6 text-white" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-2">ATS Optimized</h4>
+                      <p className="text-sm text-gray-600">Perfect for tracking systems</p>
+                    </div>
+                    
+                    <div className="glass rounded-2xl p-6 text-center hover-lift">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Sparkles className="w-6 h-6 text-white" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Keyword Enhanced</h4>
+                      <p className="text-sm text-gray-600">Aligned with job requirements</p>
+                    </div>
+                    
+                    <div className="glass rounded-2xl p-6 text-center hover-lift">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Ready to Apply</h4>
+                      <p className="text-sm text-gray-600">Download and start applying</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <button
+                      onClick={() => {
+                        toast.success('📄 Demo resume downloaded!')
+                        resetDemo()
+                      }}
+                      className="luxury-button px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center space-x-3 mx-auto"
+                    >
+                      <CheckCircle className="w-6 h-6" />
+                      <span>Download Tailored Resume</span>
+                    </button>
+                  </div>
                 </div>
-
-                <ResumePreview content={tailoredResume.preview_content} />
-
-                <button
-                  onClick={handleDownloadPDF}
-                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2"
-                >
-                  <Download className="w-5 h-5" />
-                  <span>Download PDF</span>
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 bg-white/80 backdrop-blur-xl border-t border-white/20 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <p className="luxury-subtitle">
+              Powered by advanced AI technology to help you land your dream job
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      <Toaster position="top-right" />
     </div>
   )
 } 
